@@ -1,8 +1,10 @@
+// Update PaymentController.java - Replace the existing file
 package com.example.bankapp.controller;
 
 import com.example.bankapp.entity.PaymentOrder;
 import com.example.bankapp.entity.PaymentTransaction;
 import com.example.bankapp.service.PaymentService;
+import com.example.bankapp.service.UserService;
 import com.razorpay.RazorpayException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +21,9 @@ public class PaymentController {
     @Autowired
     private PaymentService paymentService;
 
+    @Autowired
+    private UserService userService;
+
     @Value("${razorpay.key.id}")
     private String razorpayKeyId;
 
@@ -32,7 +37,6 @@ public class PaymentController {
     @ResponseBody
     public PaymentOrder createOrder(@RequestParam Double amount, Authentication authentication) {
         try {
-            // Get user ID from authentication
             Long userId = getUserIdFromAuthentication(authentication);
             return paymentService.createPaymentOrder(userId, amount);
         } catch (RazorpayException e) {
@@ -60,8 +64,9 @@ public class PaymentController {
     }
 
     private Long getUserIdFromAuthentication(Authentication authentication) {
-        // Implementation depends on your authentication setup
-        // This is a placeholder - adjust based on your User entity
-        return 1L; // Replace with actual user ID extraction logic
+        String username = authentication.getName();
+        return userService.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"))
+                .getId();
     }
 }
